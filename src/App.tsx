@@ -111,7 +111,8 @@ const App: React.FC = () => {
 					padding={1}
 					height="100%"
 				>
-					<Text bold>Current Directory: {currentPath}</Text>
+					<Text bold>Current Directory</Text>
+					<Text>{currentPath}</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
 						{currentDirectoryFiles.map((item, index) => (
 							<Box key={`${item.name}-${index}`}>
@@ -135,7 +136,7 @@ const App: React.FC = () => {
 					padding={1}
 					height="100%"
 				>
-					<Text bold>Parent Directory</Text>
+					<Text bold>Parent Directory: {path.dirname(currentPath)}</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
 						{(() => {
 							const parentPath = path.dirname(currentPath);
