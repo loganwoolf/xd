@@ -228,6 +228,8 @@ const App: React.FC = () => {
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{(showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
 								  ? loadDirectory(folders[selectedItemIndex].path)
+								  : activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
+								  ? loadDirectory(folders[selectedItemIndex].path)
 								  : files
 								).map((item, index) => (
 									<Box key={`${item.name}-${index}`}>
