@@ -199,7 +199,7 @@ const App: React.FC = () => {
 							height="100%"
 						>
 							<Text bold>{activePane === 'folders' ? '[Folders]' : 'Folders'}</Text>
-							<Text>{currentPath}</Text>
+							<Text>{path.basename(currentPath)}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{folders.map((item, index) => (
 									<Box key={`${item.name}-${index}`}>
@@ -224,7 +224,11 @@ const App: React.FC = () => {
 							height="100%"
 						>
 							<Text bold>{activePane === 'files' ? '[Files]' : 'Files'}{showSubfolders ? " and Subfolders" : ""}</Text>
-							<Text>{currentPath}</Text>
+							{activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length ? (
+								<Text>{folders[selectedItemIndex].name}</Text>
+							) : (
+								<Text>{path.basename(currentPath)}</Text>
+							)}
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{(showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
 								  ? loadDirectory(folders[selectedItemIndex].path)
