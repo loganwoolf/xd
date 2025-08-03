@@ -42,6 +42,10 @@ const App: React.FC = () => {
 		}
 	}, []);
 
+	// Separate folders and files
+	const folders = currentDirectoryFiles.filter(item => item.isDirectory);
+	const files = currentDirectoryFiles.filter(item => !item.isDirectory);
+
 	// Update current directory files when current path changes
 	useEffect(() => {
 		const files = loadDirectory(currentPath);
@@ -68,13 +72,13 @@ const App: React.FC = () => {
 		}
 
 		// Navigation
-		if (key.upArrow && currentDirectoryFiles.length > 0) {
+		if (key.upArrow && folders.length > 0) {
 			setSelectedItemIndex((prev) => Math.max(0, prev - 1));
 		}
 
-		if (key.downArrow && currentDirectoryFiles.length > 0) {
+		if (key.downArrow && folders.length > 0) {
 			setSelectedItemIndex((prev) =>
-				Math.min(currentDirectoryFiles.length - 1, prev + 1),
+				Math.min(folders.length - 1, prev + 1),
 			);
 		}
 
@@ -88,11 +92,11 @@ const App: React.FC = () => {
 
 		if (
 			(key.rightArrow || input === "\r" || input === "\n") &&
-			currentDirectoryFiles.length > 0
+			folders.length > 0
 		) {
 			// Enter selected directory
-			if (selectedItemIndex < currentDirectoryFiles.length) {
-				const selectedItem = currentDirectoryFiles[selectedItemIndex];
+			if (selectedItemIndex < folders.length) {
+				const selectedItem = folders[selectedItemIndex];
 				if (selectedItem.isDirectory) {
 					setCurrentPath(selectedItem.path);
 				}
@@ -103,7 +107,7 @@ const App: React.FC = () => {
 	return (
 		<Box flexDirection="column" height="100%">
 			<Box flexDirection="row" flexGrow={1}>
-				{/* Left panel - Current directory contents */}
+				{/* Left panel - Folders in current directory */}
 				<Box
 					flexDirection="column"
 					width="50%"
@@ -111,10 +115,10 @@ const App: React.FC = () => {
 					padding={1}
 					height="100%"
 				>
-					<Text bold>Current Directory</Text>
+					<Text bold>Folders</Text>
 					<Text>{currentPath}</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
-						{currentDirectoryFiles.map((item, index) => (
+						{folders.map((item, index) => (
 							<Box key={`${item.name}-${index}`}>
 								<Text
 									color={index === selectedItemIndex ? "blue" : undefined}
@@ -128,7 +132,7 @@ const App: React.FC = () => {
 					</Box>
 				</Box>
 
-				{/* Right panel - Parent directory contents */}
+				{/* Right panel - Files in current directory */}
 				<Box
 					flexDirection="column"
 					width="50%"
@@ -136,25 +140,20 @@ const App: React.FC = () => {
 					padding={1}
 					height="100%"
 				>
-					<Text bold>Parent Directory: {path.dirname(currentPath)}</Text>
+					<Text bold>Files</Text>
+					<Text>{currentPath}</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
-						{(() => {
-							const parentPath = path.dirname(currentPath);
-							const parentFiles = loadDirectory(parentPath);
-							const currentDirName = path.basename(currentPath);
-
-							return parentFiles.map((item, index) => (
-								<Box key={`${item.name}-${index}`}>
-									<Text
-										color={item.name === currentDirName ? "blue" : undefined}
-										bold={item.name === currentDirName}
-									>
-										{item.isDirectory ? "📁 " : "📄 "}
-										{item.name}
-									</Text>
-								</Box>
-							));
-						})()}
+						{files.map((item, index) => (
+							<Box key={`${item.name}-${index}`}>
+								<Text
+									color={index === selectedItemIndex ? "blue" : undefined}
+									bold={index === selectedItemIndex}
+								>
+									{item.isDirectory ? "📁 " : "📄 "}
+									{item.name}
+								</Text>
+							</Box>
+						))}
 					</Box>
 				</Box>
 			</Box>
