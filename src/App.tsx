@@ -86,7 +86,7 @@ const App: React.FC = () => {
 			}
 		} else {
 			// Normal navigation mode
-			// Exit on Ctrl+C or 'q'
+			// Exit on Ctrl+C or 'q' (temporary test: exit immediately for testing)
 			if ((input === "c" && key.ctrl) || input === "q") {
 				// Output the final directory to stdout so a wrapper script can use it
 				console.log(`__CWD__:${currentPath}`);
@@ -159,10 +159,10 @@ const App: React.FC = () => {
 	});
 
 	return (
-		<Box flexDirection="column" height="100%">
+		<Box flexDirection="column" height="100%" width="100%">
 			{fileViewMode ? (
 				// File view mode
-				<Box flexDirection="column" height="100%">
+				<Box flexDirection="column" height="100%" width="100%">
 					<Text bold>File Content (Press SPACE to exit view mode)</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
 						{fileContent.slice(fileViewPosition, fileViewPosition + 20).map((line, index) => (
@@ -172,7 +172,7 @@ const App: React.FC = () => {
 				</Box>
 			) : (
 				// Normal directory view mode
-				<Box flexDirection="column" height="100%">
+				<Box flexDirection="column" height="100%" width="100%">
 					<Box flexDirection="row" flexGrow={1}>
 						{/* Left panel - Folders in current directory */}
 						<Box

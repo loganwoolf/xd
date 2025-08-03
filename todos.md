@@ -1,5 +1,9 @@
-[x] change cwd on exit not working - Implemented wrapper script approach
-[x] frames always fit full window - Added height and flexGrow properties to panels 
+[x] change cwd on exit not working - Mechanism implemented, wrapper script exists
+[x] frames should always fit full window height - Added width properties to ensure proper sizing 
+[] only one pane should be active at once where arrow keys can control movement 
+[] when a folder is selected (via arrow up/down) in left pane, that folder's files should be visible in right pane.
+[] remove the path from right pane and replace with just folder name.
+[] if contents would overflow, show a count for how many below at bottom and how many above at top. scroll the view as highlighted item approaches 3 lines from end of container
 [x] full path printed at top of folder frame - Added full paths to both panels
 [x] folders on left, current folder's files on right - Reorganized UI layout
 [x] key option to show subfolders on right with files - Added 's' key to toggle subfolder view
