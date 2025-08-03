@@ -3,4 +3,4 @@
 [x] full path printed at top of folder frame - Added full paths to both panels
 [x] folders on left, current folder's files on right - Reorganized UI layout
 [x] key option to show subfolders on right with files - Added 's' key to toggle subfolder view
-[] press space to select file view and allow scrolling contents with arrow keys.
+[x] press space to select file view and allow scrolling contents with arrow keys - Added file viewing mode with scrolling
