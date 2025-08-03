@@ -21,6 +21,7 @@ const App: React.FC = () => {
 	const [fileViewMode, setFileViewMode] = useState(false);
 	const [fileContent, setFileContent] = useState<string[]>([]);
 	const [fileViewPosition, setFileViewPosition] = useState(0);
+	const [activePane, setActivePane] = useState<'folders' | 'files'>('folders');
 
 	// Load directory contents
 	const loadDirectory = useCallback((dirPath: string) => {
@@ -106,6 +107,11 @@ const App: React.FC = () => {
 			if (input === "s" || input === "S") {
 				setShowSubfolders(!showSubfolders);
 			}
+			
+			// Switch active pane on 'tab'
+			if (input === "	") { // tab key
+				setActivePane(prev => prev === 'folders' ? 'files' : 'folders');
+			}
 
 			// Toggle file view mode on space
 			if (input === " " && files.length > 0) {
@@ -125,14 +131,24 @@ const App: React.FC = () => {
 			}
 
 			// Navigation
-			if (key.upArrow && folders.length > 0) {
-				setSelectedItemIndex((prev) => Math.max(0, prev - 1));
+			if (key.upArrow) {
+				if (activePane === 'folders' && folders.length > 0) {
+					setSelectedItemIndex((prev) => Math.max(0, prev - 1));
+				} else if (activePane === 'files' && files.length > 0) {
+					// For files pane, we might want a separate selected index
+					// For now, we'll just note that files pane is active
+				}
 			}
 
-			if (key.downArrow && folders.length > 0) {
-				setSelectedItemIndex((prev) =>
-					Math.min(folders.length - 1, prev + 1),
-				);
+			if (key.downArrow) {
+				if (activePane === 'folders' && folders.length > 0) {
+					setSelectedItemIndex((prev) =>
+						Math.min(folders.length - 1, prev + 1),
+					);
+				} else if (activePane === 'files' && files.length > 0) {
+					// For files pane, we might want a separate selected index
+					// For now, we'll just note that files pane is active
+				}
 			}
 
 			if (key.leftArrow) {
@@ -182,7 +198,7 @@ const App: React.FC = () => {
 							padding={1}
 							height="100%"
 						>
-							<Text bold>Folders</Text>
+							<Text bold>{activePane === 'folders' ? '[Folders]' : 'Folders'}</Text>
 							<Text>{currentPath}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{folders.map((item, index) => (
@@ -207,7 +223,7 @@ const App: React.FC = () => {
 							padding={1}
 							height="100%"
 						>
-							<Text bold>Files{showSubfolders ? " and Subfolders" : ""}</Text>
+							<Text bold>{activePane === 'files' ? '[Files]' : 'Files'}{showSubfolders ? " and Subfolders" : ""}</Text>
 							<Text>{currentPath}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{(showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
@@ -236,7 +252,7 @@ const App: React.FC = () => {
 						borderTop={true}
 					>
 						<Text>
-							↑/↓: Navigate | ←: Parent | →/Enter: Enter | H: Home | S: Subfolders | SPACE: View File | q/Ctrl+C: Quit
+							↑/↓: Navigate | TAB: Switch Pane | ←: Parent | →/Enter: Enter | H: Home | S: Subfolders | SPACE: View File | q/Ctrl+C: Quit
 						</Text>
 					</Box>
 				</Box>
