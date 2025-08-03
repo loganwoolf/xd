@@ -22,6 +22,8 @@ const App: React.FC = () => {
 	const [fileContent, setFileContent] = useState<string[]>([]);
 	const [fileViewPosition, setFileViewPosition] = useState(0);
 	const [activePane, setActivePane] = useState<'folders' | 'files'>('folders');
+	const [foldersScrollPosition, setFoldersScrollPosition] = useState(0);
+	const [filesScrollPosition, setFilesScrollPosition] = useState(0);
 
 	// Load directory contents
 	const loadDirectory = useCallback((dirPath: string) => {
@@ -133,21 +135,59 @@ const App: React.FC = () => {
 			// Navigation
 			if (key.upArrow) {
 				if (activePane === 'folders' && folders.length > 0) {
-					setSelectedItemIndex((prev) => Math.max(0, prev - 1));
-				} else if (activePane === 'files' && files.length > 0) {
-					// For files pane, we might want a separate selected index
-					// For now, we'll just note that files pane is active
+					setSelectedItemIndex((prev) => {
+						const newIndex = Math.max(0, prev - 1);
+						// Scroll up if selected item is near the top
+						if (newIndex < foldersScrollPosition + 3) {
+							setFoldersScrollPosition(prevScroll => Math.max(0, prevScroll - 1));
+						}
+						return newIndex;
+					});
+				} else if (activePane === 'files') {
+					const effectiveItems = (showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
+						? loadDirectory(folders[selectedItemIndex].path)
+						: activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
+						? loadDirectory(folders[selectedItemIndex].path)
+						: files
+					);
+					setSelectedItemIndex((prev) => {
+						const newIndex = Math.max(0, prev - 1);
+						// Scroll up if selected item is near the top
+						if (newIndex < filesScrollPosition + 3) {
+							setFilesScrollPosition(prevScroll => Math.max(0, prevScroll - 1));
+						}
+						return newIndex;
+					});
 				}
 			}
 
 			if (key.downArrow) {
 				if (activePane === 'folders' && folders.length > 0) {
-					setSelectedItemIndex((prev) =>
-						Math.min(folders.length - 1, prev + 1),
+					setSelectedItemIndex((prev) => {
+						const newIndex = Math.min(folders.length - 1, prev + 1);
+						// Scroll down if selected item is near the bottom
+						// We'll assume a viewport of ~15 items for now
+						if (newIndex > foldersScrollPosition + 12) {
+							setFoldersScrollPosition(prevScroll => Math.min(folders.length - 15, prevScroll + 1));
+						}
+						return newIndex;
+					});
+				} else if (activePane === 'files') {
+					const effectiveItems = (showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
+						? loadDirectory(folders[selectedItemIndex].path)
+						: activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
+						? loadDirectory(folders[selectedItemIndex].path)
+						: files
 					);
-				} else if (activePane === 'files' && files.length > 0) {
-					// For files pane, we might want a separate selected index
-					// For now, we'll just note that files pane is active
+					setSelectedItemIndex((prev) => {
+						const newIndex = Math.min(effectiveItems.length - 1, prev + 1);
+						// Scroll down if selected item is near the bottom
+						// We'll assume a viewport of ~15 items for now
+						if (newIndex > filesScrollPosition + 12) {
+							setFilesScrollPosition(prevScroll => Math.min(effectiveItems.length - 15, prevScroll + 1));
+						}
+						return newIndex;
+					});
 				}
 			}
 
@@ -201,17 +241,23 @@ const App: React.FC = () => {
 							<Text bold>{activePane === 'folders' ? '[Folders]' : 'Folders'}</Text>
 							<Text>{path.basename(currentPath)}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
-								{folders.map((item, index) => (
-									<Box key={`${item.name}-${index}`}>
+								{folders.slice(foldersScrollPosition, foldersScrollPosition + 15).map((item, index) => (
+									<Box key={`${item.name}-${index + foldersScrollPosition}`}>
 										<Text
-											color={index === selectedItemIndex ? "blue" : undefined}
-											bold={index === selectedItemIndex}
+											color={index + foldersScrollPosition === selectedItemIndex ? "blue" : undefined}
+											bold={index + foldersScrollPosition === selectedItemIndex}
 										>
 											{item.isDirectory ? "📁 " : "📄 "}
 											{item.name}
 										</Text>
 									</Box>
 								))}
+								{(foldersScrollPosition > 0 || folders.length > foldersScrollPosition + 15) && (
+									<Box justifyContent="space-between" flexDirection="row">
+										<Text>{foldersScrollPosition > 0 ? `↑ ${foldersScrollPosition} more` : ""}</Text>
+										<Text>{folders.length > foldersScrollPosition + 15 ? `↓ ${folders.length - foldersScrollPosition - 15} more` : ""}</Text>
+									</Box>
+								)}
 							</Box>
 						</Box>
 
@@ -235,17 +281,23 @@ const App: React.FC = () => {
 								  : activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
 								  ? loadDirectory(folders[selectedItemIndex].path)
 								  : files
-								).map((item, index) => (
-									<Box key={`${item.name}-${index}`}>
+								).slice(filesScrollPosition, filesScrollPosition + 15).map((item, index) => (
+									<Box key={`${item.name}-${index + filesScrollPosition}`}>
 										<Text
-											color={index === selectedItemIndex ? "blue" : undefined}
-											bold={index === selectedItemIndex}
+											color={index + filesScrollPosition === selectedItemIndex ? "blue" : undefined}
+											bold={index + filesScrollPosition === selectedItemIndex}
 										>
 											{item.isDirectory ? "📁 " : "📄 "}
 											{item.name}
 										</Text>
 									</Box>
 								))}
+								{(filesScrollPosition > 0 || files.length > filesScrollPosition + 15) && (
+									<Box justifyContent="space-between" flexDirection="row">
+										<Text>{filesScrollPosition > 0 ? `↑ ${filesScrollPosition} more` : ""}</Text>
+										<Text>{files.length > filesScrollPosition + 15 ? `↓ ${files.length - filesScrollPosition - 15} more` : ""}</Text>
+									</Box>
+								)}
 							</Box>
 						</Box>
 					</Box>
