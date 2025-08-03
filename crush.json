@@ -1,0 +1,25 @@
+{
+	"$schema": "https://charm.land/crush.json",
+	"lsp": {
+		"typescript": {
+			"command": "typescript-language-server",
+			"args": [
+				"--stdio"
+			]
+		}
+	},
+	"mcp": {
+		"playwright": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest",
+				"--isolated"
+			]
+		},
+		"context7": {
+			"type": "http",
+			"url": "https://mcp.context7.com/mcp"
+		}
+	}
+}
