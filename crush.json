@@ -3,19 +3,14 @@
 	"lsp": {
 		"typescript": {
 			"command": "typescript-language-server",
-			"args": [
-				"--stdio"
-			]
+			"args": ["--stdio"]
 		}
 	},
 	"mcp": {
 		"playwright": {
 			"type": "stdio",
 			"command": "npx",
-			"args": [
-				"@playwright/mcp@latest",
-				"--isolated"
-			]
+			"args": ["@playwright/mcp@latest", "--isolated"]
 		},
 		"context7": {
 			"type": "http",
