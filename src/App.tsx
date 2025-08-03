@@ -21,9 +21,10 @@ const App: React.FC = () => {
 	const [fileViewMode, setFileViewMode] = useState(false);
 	const [fileContent, setFileContent] = useState<string[]>([]);
 	const [fileViewPosition, setFileViewPosition] = useState(0);
-	const [activePane, setActivePane] = useState<'folders' | 'files'>('folders');
+	const [activePane, setActivePane] = useState<"folders" | "files">("folders");
 	const [foldersScrollPosition, setFoldersScrollPosition] = useState(0);
 	const [filesScrollPosition, setFilesScrollPosition] = useState(0);
+	const [subfolderContents, setSubfolderContents] = useState<FileItem[]>([]);
 
 	// Load directory contents
 	const loadDirectory = useCallback((dirPath: string) => {
@@ -50,14 +51,14 @@ const App: React.FC = () => {
 	}, []);
 
 	// Separate folders and files
-	const folders = currentDirectoryFiles.filter(item => item.isDirectory);
-	const files = currentDirectoryFiles.filter(item => !item.isDirectory);
-	
+	const folders = currentDirectoryFiles.filter((item) => item.isDirectory);
+	const files = currentDirectoryFiles.filter((item) => !item.isDirectory);
+
 	// Read file content
 	const readFileContent = useCallback((filePath: string) => {
 		try {
-			const content = fs.readFileSync(filePath, 'utf8');
-			return content.split('\n');
+			const content = fs.readFileSync(filePath, "utf8");
+			return content.split("\n");
 		} catch (error) {
 			console.error("Error reading file:", error);
 			return ["Error reading file"];
@@ -69,7 +70,22 @@ const App: React.FC = () => {
 		const files = loadDirectory(currentPath);
 		setCurrentDirectoryFiles(files);
 		setSelectedItemIndex(0); // Reset selection when directory changes
+		setSubfolderContents([]); // Reset subfolder contents
 	}, [currentPath, loadDirectory]);
+
+	// Load subfolder contents when selection or showSubfolders changes
+	useEffect(() => {
+		if (
+			showSubfolders &&
+			folders.length > 0 &&
+			selectedItemIndex < folders.length
+		) {
+			const contents = loadDirectory(folders[selectedItemIndex].path);
+			setSubfolderContents(contents);
+		} else {
+			setSubfolderContents([]);
+		}
+	}, [showSubfolders, selectedItemIndex, folders, loadDirectory]);
 
 	// Handle keyboard input
 	useInput((input, key) => {
@@ -82,10 +98,12 @@ const App: React.FC = () => {
 				setFileViewPosition(0);
 			} else if (key.upArrow) {
 				// Scroll up in file content
-				setFileViewPosition(prev => Math.max(0, prev - 1));
+				setFileViewPosition((prev) => Math.max(0, prev - 1));
 			} else if (key.downArrow) {
 				// Scroll down in file content
-				setFileViewPosition(prev => Math.min(Math.max(0, fileContent.length - 10), prev + 1));
+				setFileViewPosition((prev) =>
+					Math.min(Math.max(0, fileContent.length - 10), prev + 1),
+				);
 			}
 		} else {
 			// Normal navigation mode
@@ -109,18 +127,21 @@ const App: React.FC = () => {
 			if (input === "s" || input === "S") {
 				setShowSubfolders(!showSubfolders);
 			}
-			
+
 			// Switch active pane on 'tab'
-			if (input === "	") { // tab key
-				setActivePane(prev => prev === 'folders' ? 'files' : 'folders');
+			if (input === "	") {
+				// tab key
+				setActivePane((prev) => (prev === "folders" ? "files" : "folders"));
 			}
 
 			// Toggle file view mode on space
 			if (input === " " && files.length > 0) {
-				const effectiveFiles = (showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
-					? loadDirectory(folders[selectedItemIndex].path)
-					: files
-				);
+				const effectiveFiles =
+					showSubfolders &&
+					folders.length > 0 &&
+					selectedItemIndex < folders.length
+						? subfolderContents
+						: files;
 				if (selectedItemIndex < effectiveFiles.length) {
 					const selectedItem = effectiveFiles[selectedItemIndex];
 					if (!selectedItem.isDirectory) {
@@ -134,27 +155,25 @@ const App: React.FC = () => {
 
 			// Navigation
 			if (key.upArrow) {
-				if (activePane === 'folders' && folders.length > 0) {
+				if (activePane === "folders" && folders.length > 0) {
 					setSelectedItemIndex((prev) => {
 						const newIndex = Math.max(0, prev - 1);
 						// Scroll up if selected item is near the top
 						if (newIndex < foldersScrollPosition + 3) {
-							setFoldersScrollPosition(prevScroll => Math.max(0, prevScroll - 1));
+							setFoldersScrollPosition((prevScroll) =>
+								Math.max(0, prevScroll - 1),
+							);
 						}
 						return newIndex;
 					});
-				} else if (activePane === 'files') {
-					const effectiveItems = (showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
-						? loadDirectory(folders[selectedItemIndex].path)
-						: activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
-						? loadDirectory(folders[selectedItemIndex].path)
-						: files
-					);
+				} else if (activePane === "files") {
 					setSelectedItemIndex((prev) => {
 						const newIndex = Math.max(0, prev - 1);
 						// Scroll up if selected item is near the top
 						if (newIndex < filesScrollPosition + 3) {
-							setFilesScrollPosition(prevScroll => Math.max(0, prevScroll - 1));
+							setFilesScrollPosition((prevScroll) =>
+								Math.max(0, prevScroll - 1),
+							);
 						}
 						return newIndex;
 					});
@@ -162,29 +181,27 @@ const App: React.FC = () => {
 			}
 
 			if (key.downArrow) {
-				if (activePane === 'folders' && folders.length > 0) {
+				if (activePane === "folders" && folders.length > 0) {
 					setSelectedItemIndex((prev) => {
 						const newIndex = Math.min(folders.length - 1, prev + 1);
 						// Scroll down if selected item is near the bottom
 						// We'll assume a viewport of ~15 items for now
 						if (newIndex > foldersScrollPosition + 12) {
-							setFoldersScrollPosition(prevScroll => Math.min(folders.length - 15, prevScroll + 1));
+							setFoldersScrollPosition((prevScroll) =>
+								Math.min(folders.length - 15, prevScroll + 1),
+							);
 						}
 						return newIndex;
 					});
-				} else if (activePane === 'files') {
-					const effectiveItems = (showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
-						? loadDirectory(folders[selectedItemIndex].path)
-						: activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
-						? loadDirectory(folders[selectedItemIndex].path)
-						: files
-					);
+				} else if (activePane === "files") {
 					setSelectedItemIndex((prev) => {
-						const newIndex = Math.min(effectiveItems.length - 1, prev + 1);
+						const newIndex = Math.min(files.length - 1, prev + 1);
 						// Scroll down if selected item is near the bottom
 						// We'll assume a viewport of ~15 items for now
 						if (newIndex > filesScrollPosition + 12) {
-							setFilesScrollPosition(prevScroll => Math.min(effectiveItems.length - 15, prevScroll + 1));
+							setFilesScrollPosition((prevScroll) =>
+								Math.min(files.length - 15, prevScroll + 1),
+							);
 						}
 						return newIndex;
 					});
@@ -221,9 +238,11 @@ const App: React.FC = () => {
 				<Box flexDirection="column" height="100%" width="100%">
 					<Text bold>File Content (Press SPACE to exit view mode)</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
-						{fileContent.slice(fileViewPosition, fileViewPosition + 20).map((line, index) => (
-							<Text key={index}>{line}</Text>
-						))}
+						{fileContent
+							.slice(fileViewPosition, fileViewPosition + 20)
+							.map((line, index) => (
+								<Text key={`line-${fileViewPosition + index}`}>{line}</Text>
+							))}
 					</Box>
 				</Box>
 			) : (
@@ -235,27 +254,54 @@ const App: React.FC = () => {
 							flexDirection="column"
 							width="50%"
 							borderStyle="single"
+							borderColor={activePane === "folders" ? "magenta" : undefined}
 							padding={1}
 							height="100%"
 						>
-							<Text bold>{activePane === 'folders' ? '[Folders]' : 'Folders'}</Text>
+							<Text bold>
+								{activePane === "folders" ? "[Folders]" : "Folders"}
+							</Text>
 							<Text>{path.basename(currentPath)}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
-								{folders.slice(foldersScrollPosition, foldersScrollPosition + 15).map((item, index) => (
-									<Box key={`${item.name}-${index + foldersScrollPosition}`}>
-										<Text
-											color={index + foldersScrollPosition === selectedItemIndex ? "blue" : undefined}
-											bold={index + foldersScrollPosition === selectedItemIndex}
-										>
-											{item.isDirectory ? "📁 " : "📄 "}
-											{item.name}
-										</Text>
-									</Box>
-								))}
-								{(foldersScrollPosition > 0 || folders.length > foldersScrollPosition + 15) && (
+								{folders
+									.slice(foldersScrollPosition, foldersScrollPosition + 15)
+									.map((item, index) => {
+										const key = `folder-${item.path}-${index + foldersScrollPosition}`;
+										// Debugging: log the key to see if there are duplicates
+										// console.log("Folder key:", key);
+										return (
+											<Box key={key}>
+												<Text
+													color={
+														activePane === "folders" &&
+														index + foldersScrollPosition === selectedItemIndex
+															? "blue"
+															: undefined
+													}
+													bold={
+														activePane === "folders" &&
+														index + foldersScrollPosition === selectedItemIndex
+													}
+												>
+													{item.isDirectory ? "📁 " : "📄 "}
+													{item.name}
+												</Text>
+											</Box>
+										);
+									})}
+								{(foldersScrollPosition > 0 ||
+									folders.length > foldersScrollPosition + 15) && (
 									<Box justifyContent="space-between" flexDirection="row">
-										<Text>{foldersScrollPosition > 0 ? `↑ ${foldersScrollPosition} more` : ""}</Text>
-										<Text>{folders.length > foldersScrollPosition + 15 ? `↓ ${folders.length - foldersScrollPosition - 15} more` : ""}</Text>
+										<Text>
+											{foldersScrollPosition > 0
+												? `↑ ${foldersScrollPosition} more`
+												: ""}
+										</Text>
+										<Text>
+											{folders.length > foldersScrollPosition + 15
+												? `↓ ${folders.length - foldersScrollPosition - 15} more`
+												: ""}
+										</Text>
 									</Box>
 								)}
 							</Box>
@@ -266,36 +312,70 @@ const App: React.FC = () => {
 							flexDirection="column"
 							width="50%"
 							borderStyle="single"
+							borderColor={activePane === "files" ? "magenta" : undefined}
 							padding={1}
 							height="100%"
 						>
-							<Text bold>{activePane === 'files' ? '[Files]' : 'Files'}{showSubfolders ? " and Subfolders" : ""}</Text>
-							{activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length ? (
+							<Text bold>
+								{activePane === "files" ? "[Files]" : "Files"}
+								{showSubfolders &&
+								folders.length > 0 &&
+								selectedItemIndex < folders.length
+									? ` (${folders[selectedItemIndex].name})`
+									: ""}
+							</Text>
+							{activePane === "folders" &&
+							folders.length > 0 &&
+							selectedItemIndex < folders.length ? (
 								<Text>{folders[selectedItemIndex].name}</Text>
 							) : (
 								<Text>{path.basename(currentPath)}</Text>
 							)}
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
-								{(showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
-								  ? loadDirectory(folders[selectedItemIndex].path)
-								  : activePane === 'folders' && folders.length > 0 && selectedItemIndex < folders.length
-								  ? loadDirectory(folders[selectedItemIndex].path)
-								  : files
-								).slice(filesScrollPosition, filesScrollPosition + 15).map((item, index) => (
-									<Box key={`${item.name}-${index + filesScrollPosition}`}>
-										<Text
-											color={index + filesScrollPosition === selectedItemIndex ? "blue" : undefined}
-											bold={index + filesScrollPosition === selectedItemIndex}
-										>
-											{item.isDirectory ? "📁 " : "📄 "}
-											{item.name}
-										</Text>
-									</Box>
-								))}
-								{(filesScrollPosition > 0 || files.length > filesScrollPosition + 15) && (
+								{(showSubfolders &&
+								folders.length > 0 &&
+								selectedItemIndex < folders.length
+									? subfolderContents
+									: files
+								)
+									.slice(filesScrollPosition, filesScrollPosition + 15)
+									.map((item, index) => {
+										const key = `file-${item.path}-${index + filesScrollPosition}`;
+										// Debugging: log the key to see if there are duplicates
+										// console.log("File key:", key);
+										return (
+											<Box key={key}>
+												<Text
+													color={
+														activePane === "files" &&
+														index + filesScrollPosition === selectedItemIndex
+															? "blue"
+															: undefined
+													}
+													bold={
+														activePane === "files" &&
+														index + filesScrollPosition === selectedItemIndex
+													}
+												>
+													{item.isDirectory ? "📁 " : "📄 "}
+													{item.name}
+												</Text>
+											</Box>
+										);
+									})}
+								{(filesScrollPosition > 0 ||
+									files.length > filesScrollPosition + 15) && (
 									<Box justifyContent="space-between" flexDirection="row">
-										<Text>{filesScrollPosition > 0 ? `↑ ${filesScrollPosition} more` : ""}</Text>
-										<Text>{files.length > filesScrollPosition + 15 ? `↓ ${files.length - filesScrollPosition - 15} more` : ""}</Text>
+										<Text>
+											{filesScrollPosition > 0
+												? `↑ ${filesScrollPosition} more`
+												: ""}
+										</Text>
+										<Text>
+											{files.length > filesScrollPosition + 15
+												? `↓ ${files.length - filesScrollPosition - 15} more`
+												: ""}
+										</Text>
 									</Box>
 								)}
 							</Box>
@@ -310,7 +390,8 @@ const App: React.FC = () => {
 						borderTop={true}
 					>
 						<Text>
-							↑/↓: Navigate | TAB: Switch Pane | ←: Parent | →/Enter: Enter | H: Home | S: Subfolders | SPACE: View File | q/Ctrl+C: Quit
+							↑/↓: Navigate | TAB: Switch Pane | ←: Parent | →/Enter: Enter | H:
+							Home | S: Subfolders | SPACE: View File | q/Ctrl+C: Quit
 						</Text>
 					</Box>
 				</Box>
