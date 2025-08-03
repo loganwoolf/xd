@@ -53,8 +53,8 @@ const App: React.FC = () => {
 	useInput((input, key) => {
 		// Exit on Ctrl+C or 'q'
 		if ((input === "c" && key.ctrl) || input === "q") {
-			// Set the current working directory to the last navigated path
-			process.chdir(currentPath);
+			// Output the final directory to stdout so a wrapper script can use it
+			console.log(`__CWD__:${currentPath}`);
 			exit();
 		}
 
@@ -109,9 +109,10 @@ const App: React.FC = () => {
 					width="50%"
 					borderStyle="single"
 					padding={1}
+					height="100%"
 				>
 					<Text bold>Current Directory: {currentPath}</Text>
-					<Box flexDirection="column" marginTop={1}>
+					<Box flexDirection="column" marginTop={1} flexGrow={1}>
 						{currentDirectoryFiles.map((item, index) => (
 							<Box key={`${item.name}-${index}`}>
 								<Text
@@ -132,9 +133,10 @@ const App: React.FC = () => {
 					width="50%"
 					borderStyle="single"
 					padding={1}
+					height="100%"
 				>
 					<Text bold>Parent Directory</Text>
-					<Box flexDirection="column" marginTop={1}>
+					<Box flexDirection="column" marginTop={1} flexGrow={1}>
 						{(() => {
 							const parentPath = path.dirname(currentPath);
 							const parentFiles = loadDirectory(parentPath);
