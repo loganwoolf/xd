@@ -46,9 +46,19 @@ const App: React.FC = () => {
 
   // Handle keyboard input
   useInput((input, key) => {
-    // Exit on Ctrl+C
-    if (input === 'c' && key.ctrl) {
+    // Exit on Ctrl+C or 'q'
+    if ((input === 'c' && key.ctrl) || input === 'q') {
+      // Set the current working directory to the last navigated path
+      process.chdir(currentPath);
       exit();
+    }
+
+    // Jump to home directory on 'H'
+    if (input === 'H') {
+      const homeDir = process.env.HOME || process.env.USERPROFILE || process.cwd();
+      if (homeDir) {
+        setCurrentPath(homeDir);
+      }
     }
 
     // Navigation
@@ -80,41 +90,50 @@ const App: React.FC = () => {
   });
 
   return (
-    <Box flexDirection="row">
-      {/* Left panel - Current directory contents */}
-      <Box flexDirection="column" width="50%" borderStyle="single" padding={1}>
-        <Text bold>Current Directory: {currentPath}</Text>
-        <Box flexDirection="column" marginTop={1}>
-          {currentDirectoryFiles.map((item, index) => (
-            <Box key={`current-${item.path}`}>
-              <Text color={index === selectedItemIndex ? 'blue' : undefined} bold={index === selectedItemIndex}>
-                {item.isDirectory ? '📁 ' : '📄 '}
-                {item.name}
-              </Text>
-            </Box>
-          ))}
-        </Box>
-      </Box>
-
-      {/* Right panel - Parent directory contents */}
-      <Box flexDirection="column" width="50%" borderStyle="single" padding={1}>
-        <Text bold>Parent Directory</Text>
-        <Box flexDirection="column" marginTop={1}>
-          {(() => {
-            const parentPath = path.dirname(currentPath);
-            const parentFiles = loadDirectory(parentPath);
-            const currentDirName = path.basename(currentPath);
-            
-            return parentFiles.map((item, index) => (
-              <Box key={`parent-${item.path}`}>
-                <Text color={item.name === currentDirName ? 'blue' : undefined} bold={item.name === currentDirName}>
+    <Box flexDirection="column" height="100%">
+      <Box flexDirection="row" flexGrow={1}>
+        {/* Left panel - Current directory contents */}
+        <Box flexDirection="column" width="50%" borderStyle="single" padding={1}>
+          <Text bold>Current Directory: {currentPath}</Text>
+          <Box flexDirection="column" marginTop={1}>
+            {currentDirectoryFiles.map((item, index) => (
+              <Box key={`current-${index}`}>
+                <Text color={index === selectedItemIndex ? 'blue' : undefined} bold={index === selectedItemIndex}>
                   {item.isDirectory ? '📁 ' : '📄 '}
                   {item.name}
                 </Text>
               </Box>
-            ));
-          })()}
+            ))}
+          </Box>
         </Box>
+
+        {/* Right panel - Parent directory contents */}
+        <Box flexDirection="column" width="50%" borderStyle="single" padding={1}>
+          <Text bold>Parent Directory</Text>
+          <Box flexDirection="column" marginTop={1}>
+            {(() => {
+              const parentPath = path.dirname(currentPath);
+              const parentFiles = loadDirectory(parentPath);
+              const currentDirName = path.basename(currentPath);
+              
+              return parentFiles.map((item, index) => (
+                <Box key={`parent-${index}`}>
+                  <Text color={item.name === currentDirName ? 'blue' : undefined} bold={item.name === currentDirName}>
+                    {item.isDirectory ? '📁 ' : '📄 '}
+                    {item.name}
+                  </Text>
+                </Box>
+              ));
+            })()}
+          </Box>
+        </Box>
+      </Box>
+      
+      {/* Key commands footer */}
+      <Box flexDirection="row" justifyContent="center" padding={1} borderTop={true}>
+        <Text>
+          ↑/↓: Navigate | ←: Parent | →/Enter: Enter | H: Home | q/Ctrl+C: Quit
+        </Text>
       </Box>
     </Box>
   );
