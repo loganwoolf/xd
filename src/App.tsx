@@ -17,6 +17,7 @@ const App: React.FC = () => {
 	const [currentDirectoryFiles, setCurrentDirectoryFiles] = useState<
 		FileItem[]
 	>([]);
+	const [showSubfolders, setShowSubfolders] = useState(false);
 
 	// Load directory contents
 	const loadDirectory = useCallback((dirPath: string) => {
@@ -69,6 +70,11 @@ const App: React.FC = () => {
 			if (homeDir) {
 				setCurrentPath(homeDir);
 			}
+		}
+
+		// Toggle subfolder view on 's'
+		if (input === "s" || input === "S") {
+			setShowSubfolders(!showSubfolders);
 		}
 
 		// Navigation
@@ -132,7 +138,7 @@ const App: React.FC = () => {
 					</Box>
 				</Box>
 
-				{/* Right panel - Files in current directory */}
+				{/* Right panel - Files in current directory (and subfolders if toggled) */}
 				<Box
 					flexDirection="column"
 					width="50%"
@@ -140,10 +146,13 @@ const App: React.FC = () => {
 					padding={1}
 					height="100%"
 				>
-					<Text bold>Files</Text>
+					<Text bold>Files{showSubfolders ? " and Subfolders" : ""}</Text>
 					<Text>{currentPath}</Text>
 					<Box flexDirection="column" marginTop={1} flexGrow={1}>
-						{files.map((item, index) => (
+						{(showSubfolders && folders.length > 0 && selectedItemIndex < folders.length 
+						  ? loadDirectory(folders[selectedItemIndex].path)
+						  : files
+						).map((item, index) => (
 							<Box key={`${item.name}-${index}`}>
 								<Text
 									color={index === selectedItemIndex ? "blue" : undefined}
@@ -166,7 +175,7 @@ const App: React.FC = () => {
 				borderTop={true}
 			>
 				<Text>
-					↑/↓: Navigate | ←: Parent | →/Enter: Enter | H: Home | q/Ctrl+C: Quit
+					↑/↓: Navigate | ←: Parent | →/Enter: Enter | H: Home | S: Subfolders | q/Ctrl+C: Quit
 				</Text>
 			</Box>
 		</Box>
