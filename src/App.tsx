@@ -259,28 +259,26 @@ const App: React.FC = () => {
 							height="100%"
 						>
 							<Text bold>
-								{activePane === "folders" ? "[Folders]" : "Folders"}
+								{activePane === "folders" ? "[folders]" : "folders"}
 							</Text>
 							<Text>{path.basename(currentPath)}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{folders
 									.slice(foldersScrollPosition, foldersScrollPosition + 15)
 									.map((item, index) => {
-										const key = `folder-${item.path}-${index + foldersScrollPosition}`;
-										// Debugging: log the key to see if there are duplicates
-										// console.log("Folder key:", key);
+										const globalIndex = index + foldersScrollPosition;
 										return (
-											<Box key={key}>
+											<Box key={`folder-${globalIndex}`}>
 												<Text
 													color={
 														activePane === "folders" &&
-														index + foldersScrollPosition === selectedItemIndex
+														globalIndex === selectedItemIndex
 															? "blue"
 															: undefined
 													}
 													bold={
 														activePane === "folders" &&
-														index + foldersScrollPosition === selectedItemIndex
+														globalIndex === selectedItemIndex
 													}
 												>
 													{item.isDirectory ? "📁 " : "📄 "}
@@ -317,7 +315,7 @@ const App: React.FC = () => {
 							height="100%"
 						>
 							<Text bold>
-								{activePane === "files" ? "[Files]" : "Files"}
+								{activePane === "files" ? "[contents]" : "contents"}
 								{showSubfolders &&
 								folders.length > 0 &&
 								selectedItemIndex < folders.length
@@ -340,21 +338,19 @@ const App: React.FC = () => {
 								)
 									.slice(filesScrollPosition, filesScrollPosition + 15)
 									.map((item, index) => {
-										const key = `file-${item.path}-${index + filesScrollPosition}`;
-										// Debugging: log the key to see if there are duplicates
-										// console.log("File key:", key);
+										const globalIndex = index + filesScrollPosition;
 										return (
-											<Box key={key}>
+											<Box key={`file-${globalIndex}`}>
 												<Text
 													color={
 														activePane === "files" &&
-														index + filesScrollPosition === selectedItemIndex
+														globalIndex === selectedItemIndex
 															? "blue"
 															: undefined
 													}
 													bold={
 														activePane === "files" &&
-														index + filesScrollPosition === selectedItemIndex
+														globalIndex === selectedItemIndex
 													}
 												>
 													{item.isDirectory ? "📁 " : "📄 "}
