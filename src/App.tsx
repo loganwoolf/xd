@@ -33,11 +33,11 @@ const App: React.FC = () => {
 		try {
 			const items = fs.readdirSync(dirPath, { withFileTypes: true });
 			const fileItems: FileItem[] = items
-				.map((item) => ({
+				.map((item, index) => ({
 					name: item.name,
 					path: path.join(dirPath, item.name),
 					isDirectory: item.isDirectory(),
-					id: `${item.name}-${Date.now()}-${Math.random()}`,
+					id: `${dirPath}-${item.name}-${index}-${Date.now()}`,
 				}))
 				.sort((a, b) => {
 					// Directories first, then files, both sorted alphabetically
@@ -273,28 +273,24 @@ const App: React.FC = () => {
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{folders
 									.slice(foldersScrollPosition, foldersScrollPosition + 15)
-									.map((item, index) => {
-										const globalIndex = index + foldersScrollPosition;
-										return (
-											<Box key={`left-panel-folder-${item.id}`}>
-												<Text
-													color={
-														activePane === "folders" &&
-														globalIndex === selectedFolderIndex
-															? "blue"
-															: undefined
-													}
-													bold={
-														activePane === "folders" &&
-														globalIndex === selectedFolderIndex
-													}
-												>
-													{item.isDirectory ? "📁 " : "📄 "}
-													{item.name}
-												</Text>
-											</Box>
-										);
-									})}
+									.map((item, index) => (
+										<Text
+											key={`folder-${item.id}`}
+											color={
+												activePane === "folders" &&
+												index + foldersScrollPosition === selectedFolderIndex
+													? "blue"
+													: undefined
+											}
+											bold={
+												activePane === "folders" &&
+												index + foldersScrollPosition === selectedFolderIndex
+											}
+										>
+											{item.isDirectory ? "📁 " : "📄 "}
+											{item.name}
+										</Text>
+									))}
 								{(foldersScrollPosition > 0 ||
 									folders.length > foldersScrollPosition + 15) && (
 									<Box justifyContent="space-between" flexDirection="row">
@@ -345,34 +341,24 @@ const App: React.FC = () => {
 									: files
 								)
 									.slice(filesScrollPosition, filesScrollPosition + 15)
-									.map((item, index) => {
-										const globalIndex = index + filesScrollPosition;
-										const keyPrefix =
-											showSubfolders &&
-											folders.length > 0 &&
-											selectedFolderIndex < folders.length
-												? "subfolder"
-												: "file";
-										return (
-											<Box key={`right-panel-${keyPrefix}-${item.id}`}>
-												<Text
-													color={
-														activePane === "files" &&
-														globalIndex === selectedFileIndex
-															? "blue"
-															: undefined
-													}
-													bold={
-														activePane === "files" &&
-														globalIndex === selectedFileIndex
-													}
-												>
-													{item.isDirectory ? "📁 " : "📄 "}
-													{item.name}
-												</Text>
-											</Box>
-										);
-									})}
+									.map((item, index) => (
+										<Text
+											key={`file-${item.id}`}
+											color={
+												activePane === "files" &&
+												index + filesScrollPosition === selectedFileIndex
+													? "blue"
+													: undefined
+											}
+											bold={
+												activePane === "files" &&
+												index + filesScrollPosition === selectedFileIndex
+											}
+										>
+											{item.isDirectory ? "📁 " : "📄 "}
+											{item.name}
+										</Text>
+									))}
 								{(filesScrollPosition > 0 ||
 									files.length > filesScrollPosition + 15) && (
 									<Box justifyContent="space-between" flexDirection="row">
