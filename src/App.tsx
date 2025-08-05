@@ -19,6 +19,9 @@ const App: React.FC = () => {
 	const [currentDirectoryFiles, setCurrentDirectoryFiles] = useState<
 		FileItem[]
 	>([]);
+	const [parentDirectoryFiles, setParentDirectoryFiles] = useState<FileItem[]>(
+		[],
+	);
 	const [showSubfolders, setShowSubfolders] = useState(false);
 	const [fileViewMode, setFileViewMode] = useState(false);
 	const [fileContent, setFileContent] = useState<string[]>([]);
@@ -53,6 +56,15 @@ const App: React.FC = () => {
 		}
 	}, []);
 
+	// Load parent directory contents for tree view
+	const loadParentDirectory = useCallback(
+		(dirPath: string) => {
+			const parentPath = path.dirname(dirPath);
+			return loadDirectory(parentPath);
+		},
+		[loadDirectory],
+	);
+
 	// Separate folders and files
 	const folders = currentDirectoryFiles.filter((item) => item.isDirectory);
 	const files = currentDirectoryFiles.filter((item) => !item.isDirectory);
@@ -71,11 +83,13 @@ const App: React.FC = () => {
 	// Update current directory files when current path changes
 	useEffect(() => {
 		const files = loadDirectory(currentPath);
+		const parentFiles = loadParentDirectory(currentPath);
 		setCurrentDirectoryFiles(files);
+		setParentDirectoryFiles(parentFiles);
 		setSelectedFolderIndex(0); // Reset selection when directory changes
 		setSelectedFileIndex(0); // Reset selection when directory changes
 		setSubfolderContents([]); // Reset subfolder contents
-	}, [currentPath, loadDirectory]);
+	}, [currentPath, loadDirectory, loadParentDirectory]);
 
 	// Load subfolder contents when selection or showSubfolders changes
 	useEffect(() => {
@@ -159,7 +173,10 @@ const App: React.FC = () => {
 
 			// Navigation
 			if (key.upArrow) {
-				if (activePane === "folders" && folders.length > 0) {
+				if (
+					activePane === "folders" &&
+					parentDirectoryFiles.filter((item) => item.isDirectory).length > 0
+				) {
 					setSelectedFolderIndex((prev) => {
 						const newIndex = Math.max(0, prev - 1);
 						// Scroll up if selected item is near the top
@@ -185,14 +202,25 @@ const App: React.FC = () => {
 			}
 
 			if (key.downArrow) {
-				if (activePane === "folders" && folders.length > 0) {
+				if (
+					activePane === "folders" &&
+					parentDirectoryFiles.filter((item) => item.isDirectory).length > 0
+				) {
 					setSelectedFolderIndex((prev) => {
-						const newIndex = Math.min(folders.length - 1, prev + 1);
+						const newIndex = Math.min(
+							parentDirectoryFiles.filter((item) => item.isDirectory).length -
+								1,
+							prev + 1,
+						);
 						// Scroll down if selected item is near the bottom
 						// We'll assume a viewport of ~15 items for now
 						if (newIndex > foldersScrollPosition + 12) {
 							setFoldersScrollPosition((prevScroll) =>
-								Math.min(folders.length - 15, prevScroll + 1),
+								Math.min(
+									parentDirectoryFiles.filter((item) => item.isDirectory)
+										.length - 15,
+									prevScroll + 1,
+								),
 							);
 						}
 						return newIndex;
@@ -222,11 +250,16 @@ const App: React.FC = () => {
 
 			if (
 				(key.rightArrow || input === "\r" || input === "\n") &&
-				folders.length > 0
+				parentDirectoryFiles.filter((item) => item.isDirectory).length > 0
 			) {
 				// Enter selected directory
-				if (selectedFolderIndex < folders.length) {
-					const selectedItem = folders[selectedFolderIndex];
+				if (
+					selectedFolderIndex <
+					parentDirectoryFiles.filter((item) => item.isDirectory).length
+				) {
+					const selectedItem = parentDirectoryFiles.filter(
+						(item) => item.isDirectory,
+					)[selectedFolderIndex];
 					if (selectedItem.isDirectory) {
 						setCurrentPath(selectedItem.path);
 					}
@@ -269,9 +302,10 @@ const App: React.FC = () => {
 							<Text bold>
 								{activePane === "folders" ? "[folders]" : "folders"}
 							</Text>
-							<Text>{path.basename(currentPath)}</Text>
+							<Text>{path.basename(path.dirname(currentPath))}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
-								{folders
+								{parentDirectoryFiles
+									.filter((item) => item.isDirectory)
 									.slice(foldersScrollPosition, foldersScrollPosition + 15)
 									.map((item, index) => (
 										<Text
@@ -292,7 +326,9 @@ const App: React.FC = () => {
 										</Text>
 									))}
 								{(foldersScrollPosition > 0 ||
-									folders.length > foldersScrollPosition + 15) && (
+									parentDirectoryFiles.filter((item) => item.isDirectory)
+										.length >
+										foldersScrollPosition + 15) && (
 									<Box justifyContent="space-between" flexDirection="row">
 										<Text>
 											{foldersScrollPosition > 0
@@ -300,8 +336,10 @@ const App: React.FC = () => {
 												: ""}
 										</Text>
 										<Text>
-											{folders.length > foldersScrollPosition + 15
-												? `↓ ${folders.length - foldersScrollPosition - 15} more`
+											{parentDirectoryFiles.filter((item) => item.isDirectory)
+												.length >
+											foldersScrollPosition + 15
+												? `↓ ${parentDirectoryFiles.filter((item) => item.isDirectory).length - foldersScrollPosition - 15} more`
 												: ""}
 										</Text>
 									</Box>
