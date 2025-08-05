@@ -298,7 +298,7 @@ const App: React.FC = () => {
 							.slice(fileViewPosition, fileViewPosition + 20)
 							.map((line, index) => (
 								<Text
-									key={`file-view-line-${fileViewPosition}-${index}-${line.substring(0, 10)}`}
+									key={`file-view-line-${fileViewPosition}-${index}-${line.substring(0, 10)}-${Math.random()}`}
 								>
 									{line}
 								</Text>
