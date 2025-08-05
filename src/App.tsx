@@ -8,6 +8,7 @@ interface FileItem {
 	name: string;
 	path: string;
 	isDirectory: boolean;
+	id: string;
 }
 
 const App: React.FC = () => {
@@ -36,6 +37,7 @@ const App: React.FC = () => {
 					name: item.name,
 					path: path.join(dirPath, item.name),
 					isDirectory: item.isDirectory(),
+					id: `${item.name}-${Date.now()}-${Math.random()}`,
 				}))
 				.sort((a, b) => {
 					// Directories first, then files, both sorted alphabetically
@@ -243,7 +245,11 @@ const App: React.FC = () => {
 						{fileContent
 							.slice(fileViewPosition, fileViewPosition + 20)
 							.map((line, index) => (
-								<Text key={`line-${fileViewPosition + index}`}>{line}</Text>
+								<Text
+									key={`file-view-line-${fileViewPosition}-${index}-${line.substring(0, 10)}`}
+								>
+									{line}
+								</Text>
 							))}
 					</Box>
 				</Box>
@@ -270,7 +276,7 @@ const App: React.FC = () => {
 									.map((item, index) => {
 										const globalIndex = index + foldersScrollPosition;
 										return (
-											<Box key={`left-panel-folder-${globalIndex}`}>
+											<Box key={`left-panel-folder-${item.id}`}>
 												<Text
 													color={
 														activePane === "folders" &&
@@ -348,7 +354,7 @@ const App: React.FC = () => {
 												? "subfolder"
 												: "file";
 										return (
-											<Box key={`right-panel-${keyPrefix}-${globalIndex}`}>
+											<Box key={`right-panel-${keyPrefix}-${item.id}`}>
 												<Text
 													color={
 														activePane === "files" &&
