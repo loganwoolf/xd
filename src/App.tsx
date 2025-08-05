@@ -335,7 +335,7 @@ const App: React.FC = () => {
 									.slice(foldersScrollPosition, foldersScrollPosition + 15)
 									.map((item, index) => (
 										<Text
-											key={`folder-${item.id}`}
+											key={`left-panel-folder-${item.id}`}
 											color={
 												activePane === "folders" &&
 												index + foldersScrollPosition === selectedFolderIndex
@@ -399,7 +399,7 @@ const App: React.FC = () => {
 											.slice(filesScrollPosition, filesScrollPosition + 15)
 											.map((item, index) => (
 												<Text
-													key={`subfolder-${item.id}`}
+													key={`right-panel-subfolder-${item.id}`}
 													color={
 														activePane === "files" &&
 														index + filesScrollPosition === selectedFileIndex
@@ -425,7 +425,7 @@ const App: React.FC = () => {
 											.slice(filesScrollPosition, filesScrollPosition + 15)
 											.map((item, index) => (
 												<Text
-													key={`file-${item.id}`}
+													key={`right-panel-file-${item.id}`}
 													color={
 														activePane === "files" &&
 														index + filesScrollPosition === selectedFileIndex
