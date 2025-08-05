@@ -175,7 +175,8 @@ const App: React.FC = () => {
 			if (key.upArrow) {
 				if (
 					activePane === "folders" &&
-					parentDirectoryFiles.filter((item) => item.isDirectory).length > 0
+					[parentDirectoryFiles.filter((item) => item.isDirectory).length + 1] >
+						0
 				) {
 					setSelectedFolderIndex((prev) => {
 						const newIndex = Math.max(0, prev - 1);
@@ -204,12 +205,15 @@ const App: React.FC = () => {
 			if (key.downArrow) {
 				if (
 					activePane === "folders" &&
-					parentDirectoryFiles.filter((item) => item.isDirectory).length > 0
+					[parentDirectoryFiles.filter((item) => item.isDirectory).length + 1] >
+						0
 				) {
 					setSelectedFolderIndex((prev) => {
 						const newIndex = Math.min(
-							parentDirectoryFiles.filter((item) => item.isDirectory).length -
-								1,
+							[
+								parentDirectoryFiles.filter((item) => item.isDirectory).length +
+									1,
+							] - 1,
 							prev + 1,
 						);
 						// Scroll down if selected item is near the bottom
@@ -217,8 +221,10 @@ const App: React.FC = () => {
 						if (newIndex > foldersScrollPosition + 12) {
 							setFoldersScrollPosition((prevScroll) =>
 								Math.min(
-									parentDirectoryFiles.filter((item) => item.isDirectory)
-										.length - 15,
+									[
+										parentDirectoryFiles.filter((item) => item.isDirectory)
+											.length + 1,
+									] - 15,
 									prevScroll + 1,
 								),
 							);
@@ -250,17 +256,30 @@ const App: React.FC = () => {
 
 			if (
 				(key.rightArrow || input === "\r" || input === "\n") &&
-				parentDirectoryFiles.filter((item) => item.isDirectory).length > 0
+				[parentDirectoryFiles.filter((item) => item.isDirectory).length + 1] > 0
 			) {
 				// Enter selected directory
 				if (
 					selectedFolderIndex <
-					parentDirectoryFiles.filter((item) => item.isDirectory).length
+					[parentDirectoryFiles.filter((item) => item.isDirectory).length + 1]
 				) {
-					const selectedItem = parentDirectoryFiles.filter(
-						(item) => item.isDirectory,
-					)[selectedFolderIndex];
-					if (selectedItem.isDirectory) {
+					const items = [
+						{
+							name: "..",
+							path: path.dirname(currentPath),
+							isDirectory: true,
+							id: "parent",
+						},
+						...parentDirectoryFiles.filter((item) => item.isDirectory),
+					];
+					const selectedItem = items[selectedFolderIndex];
+					if (selectedItem.name === "..") {
+						// Go to parent directory
+						const parentPath = path.dirname(currentPath);
+						if (parentPath !== currentPath) {
+							setCurrentPath(parentPath);
+						}
+					} else if (selectedItem.isDirectory) {
 						setCurrentPath(selectedItem.path);
 					}
 				}
@@ -304,8 +323,15 @@ const App: React.FC = () => {
 							</Text>
 							<Text>{path.basename(path.dirname(currentPath))}</Text>
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
-								{parentDirectoryFiles
-									.filter((item) => item.isDirectory)
+								{[
+									{
+										name: "..",
+										path: path.dirname(currentPath),
+										isDirectory: true,
+										id: "parent",
+									},
+									...parentDirectoryFiles.filter((item) => item.isDirectory),
+								]
 									.slice(foldersScrollPosition, foldersScrollPosition + 15)
 									.map((item, index) => (
 										<Text
@@ -326,8 +352,10 @@ const App: React.FC = () => {
 										</Text>
 									))}
 								{(foldersScrollPosition > 0 ||
-									parentDirectoryFiles.filter((item) => item.isDirectory)
-										.length >
+									[
+										parentDirectoryFiles.filter((item) => item.isDirectory)
+											.length + 1,
+									].length >
 										foldersScrollPosition + 15) && (
 									<Box justifyContent="space-between" flexDirection="row">
 										<Text>
@@ -336,10 +364,12 @@ const App: React.FC = () => {
 												: ""}
 										</Text>
 										<Text>
-											{parentDirectoryFiles.filter((item) => item.isDirectory)
-												.length >
+											{[
+												parentDirectoryFiles.filter((item) => item.isDirectory)
+													.length + 1,
+											].length >
 											foldersScrollPosition + 15
-												? `↓ ${parentDirectoryFiles.filter((item) => item.isDirectory).length - foldersScrollPosition - 15} more`
+												? `↓ ${[parentDirectoryFiles.filter((item) => item.isDirectory).length + 1].length - foldersScrollPosition - 15} more`
 												: ""}
 										</Text>
 									</Box>
