@@ -13,7 +13,8 @@ interface FileItem {
 const App: React.FC = () => {
 	const { exit } = useApp();
 	const [currentPath, setCurrentPath] = useState(process.cwd());
-	const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+	const [selectedFolderIndex, setSelectedFolderIndex] = useState(0);
+	const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 	const [currentDirectoryFiles, setCurrentDirectoryFiles] = useState<
 		FileItem[]
 	>([]);
@@ -69,7 +70,8 @@ const App: React.FC = () => {
 	useEffect(() => {
 		const files = loadDirectory(currentPath);
 		setCurrentDirectoryFiles(files);
-		setSelectedItemIndex(0); // Reset selection when directory changes
+		setSelectedFolderIndex(0); // Reset selection when directory changes
+		setSelectedFileIndex(0); // Reset selection when directory changes
 		setSubfolderContents([]); // Reset subfolder contents
 	}, [currentPath, loadDirectory]);
 
@@ -78,14 +80,14 @@ const App: React.FC = () => {
 		if (
 			showSubfolders &&
 			folders.length > 0 &&
-			selectedItemIndex < folders.length
+			selectedFolderIndex < folders.length
 		) {
-			const contents = loadDirectory(folders[selectedItemIndex].path);
+			const contents = loadDirectory(folders[selectedFolderIndex].path);
 			setSubfolderContents(contents);
 		} else {
 			setSubfolderContents([]);
 		}
-	}, [showSubfolders, selectedItemIndex, folders, loadDirectory]);
+	}, [showSubfolders, selectedFolderIndex, folders, loadDirectory]);
 
 	// Handle keyboard input
 	useInput((input, key) => {
@@ -139,11 +141,11 @@ const App: React.FC = () => {
 				const effectiveFiles =
 					showSubfolders &&
 					folders.length > 0 &&
-					selectedItemIndex < folders.length
+					selectedFolderIndex < folders.length
 						? subfolderContents
 						: files;
-				if (selectedItemIndex < effectiveFiles.length) {
-					const selectedItem = effectiveFiles[selectedItemIndex];
+				if (selectedFileIndex < effectiveFiles.length) {
+					const selectedItem = effectiveFiles[selectedFileIndex];
 					if (!selectedItem.isDirectory) {
 						setFileViewMode(true);
 						const content = readFileContent(selectedItem.path);
@@ -156,7 +158,7 @@ const App: React.FC = () => {
 			// Navigation
 			if (key.upArrow) {
 				if (activePane === "folders" && folders.length > 0) {
-					setSelectedItemIndex((prev) => {
+					setSelectedFolderIndex((prev) => {
 						const newIndex = Math.max(0, prev - 1);
 						// Scroll up if selected item is near the top
 						if (newIndex < foldersScrollPosition + 3) {
@@ -167,7 +169,7 @@ const App: React.FC = () => {
 						return newIndex;
 					});
 				} else if (activePane === "files") {
-					setSelectedItemIndex((prev) => {
+					setSelectedFileIndex((prev) => {
 						const newIndex = Math.max(0, prev - 1);
 						// Scroll up if selected item is near the top
 						if (newIndex < filesScrollPosition + 3) {
@@ -182,7 +184,7 @@ const App: React.FC = () => {
 
 			if (key.downArrow) {
 				if (activePane === "folders" && folders.length > 0) {
-					setSelectedItemIndex((prev) => {
+					setSelectedFolderIndex((prev) => {
 						const newIndex = Math.min(folders.length - 1, prev + 1);
 						// Scroll down if selected item is near the bottom
 						// We'll assume a viewport of ~15 items for now
@@ -194,7 +196,7 @@ const App: React.FC = () => {
 						return newIndex;
 					});
 				} else if (activePane === "files") {
-					setSelectedItemIndex((prev) => {
+					setSelectedFileIndex((prev) => {
 						const newIndex = Math.min(files.length - 1, prev + 1);
 						// Scroll down if selected item is near the bottom
 						// We'll assume a viewport of ~15 items for now
@@ -221,8 +223,8 @@ const App: React.FC = () => {
 				folders.length > 0
 			) {
 				// Enter selected directory
-				if (selectedItemIndex < folders.length) {
-					const selectedItem = folders[selectedItemIndex];
+				if (selectedFolderIndex < folders.length) {
+					const selectedItem = folders[selectedFolderIndex];
 					if (selectedItem.isDirectory) {
 						setCurrentPath(selectedItem.path);
 					}
@@ -268,17 +270,17 @@ const App: React.FC = () => {
 									.map((item, index) => {
 										const globalIndex = index + foldersScrollPosition;
 										return (
-											<Box key={`folder-${globalIndex}`}>
+											<Box key={`left-panel-folder-${globalIndex}`}>
 												<Text
 													color={
 														activePane === "folders" &&
-														globalIndex === selectedItemIndex
+														globalIndex === selectedFolderIndex
 															? "blue"
 															: undefined
 													}
 													bold={
 														activePane === "folders" &&
-														globalIndex === selectedItemIndex
+														globalIndex === selectedFolderIndex
 													}
 												>
 													{item.isDirectory ? "📁 " : "📄 "}
@@ -318,39 +320,45 @@ const App: React.FC = () => {
 								{activePane === "files" ? "[contents]" : "contents"}
 								{showSubfolders &&
 								folders.length > 0 &&
-								selectedItemIndex < folders.length
-									? ` (${folders[selectedItemIndex].name})`
+								selectedFolderIndex < folders.length
+									? ` (${folders[selectedFolderIndex].name})`
 									: ""}
 							</Text>
 							{activePane === "folders" &&
 							folders.length > 0 &&
-							selectedItemIndex < folders.length ? (
-								<Text>{folders[selectedItemIndex].name}</Text>
+							selectedFolderIndex < folders.length ? (
+								<Text>{folders[selectedFolderIndex].name}</Text>
 							) : (
 								<Text>{path.basename(currentPath)}</Text>
 							)}
 							<Box flexDirection="column" marginTop={1} flexGrow={1}>
 								{(showSubfolders &&
 								folders.length > 0 &&
-								selectedItemIndex < folders.length
+								selectedFolderIndex < folders.length
 									? subfolderContents
 									: files
 								)
 									.slice(filesScrollPosition, filesScrollPosition + 15)
 									.map((item, index) => {
 										const globalIndex = index + filesScrollPosition;
+										const keyPrefix =
+											showSubfolders &&
+											folders.length > 0 &&
+											selectedFolderIndex < folders.length
+												? "subfolder"
+												: "file";
 										return (
-											<Box key={`file-${globalIndex}`}>
+											<Box key={`right-panel-${keyPrefix}-${globalIndex}`}>
 												<Text
 													color={
 														activePane === "files" &&
-														globalIndex === selectedItemIndex
+														globalIndex === selectedFileIndex
 															? "blue"
 															: undefined
 													}
 													bold={
 														activePane === "files" &&
-														globalIndex === selectedItemIndex
+														globalIndex === selectedFileIndex
 													}
 												>
 													{item.isDirectory ? "📁 " : "📄 "}
