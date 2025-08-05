@@ -347,7 +347,7 @@ const App: React.FC = () => {
 							</Box>
 						</Box>
 
-						{/* Right panel - Files in current directory (and subfolders if toggled) */}
+						{/* Right panel - Contents in two columns */}
 						<Box
 							flexDirection="column"
 							width="50%"
@@ -358,60 +358,61 @@ const App: React.FC = () => {
 						>
 							<Text bold>
 								{activePane === "files" ? "[contents]" : "contents"}
-								{showSubfolders &&
-								folders.length > 0 &&
-								selectedFolderIndex < folders.length
-									? ` (${folders[selectedFolderIndex].name})`
-									: ""}
 							</Text>
-							{activePane === "folders" &&
-							folders.length > 0 &&
-							selectedFolderIndex < folders.length ? (
-								<Text>{folders[selectedFolderIndex].name}</Text>
-							) : (
-								<Text>{path.basename(currentPath)}</Text>
-							)}
-							<Box flexDirection="column" marginTop={1} flexGrow={1}>
-								{(showSubfolders &&
-								folders.length > 0 &&
-								selectedFolderIndex < folders.length
-									? subfolderContents
-									: files
-								)
-									.slice(filesScrollPosition, filesScrollPosition + 15)
-									.map((item, index) => (
-										<Text
-											key={`file-${item.id}`}
-											color={
-												activePane === "files" &&
-												index + filesScrollPosition === selectedFileIndex
-													? "blue"
-													: undefined
-											}
-											bold={
-												activePane === "files" &&
-												index + filesScrollPosition === selectedFileIndex
-											}
-										>
-											{item.isDirectory ? "📁 " : "📄 "}
-											{item.name}
-										</Text>
-									))}
-								{(filesScrollPosition > 0 ||
-									files.length > filesScrollPosition + 15) && (
-									<Box justifyContent="space-between" flexDirection="row">
-										<Text>
-											{filesScrollPosition > 0
-												? `↑ ${filesScrollPosition} more`
-												: ""}
-										</Text>
-										<Text>
-											{files.length > filesScrollPosition + 15
-												? `↓ ${files.length - filesScrollPosition - 15} more`
-												: ""}
-										</Text>
+							<Text>{path.basename(currentPath)}</Text>
+							<Box flexDirection="row" flexGrow={1}>
+								{/* Left column - Folders */}
+								<Box flexDirection="column" width="50%">
+									<Text bold>subfolders</Text>
+									<Box flexDirection="column" marginTop={1} flexGrow={1}>
+										{folders
+											.slice(filesScrollPosition, filesScrollPosition + 15)
+											.map((item, index) => (
+												<Text
+													key={`subfolder-${item.id}`}
+													color={
+														activePane === "files" &&
+														index + filesScrollPosition === selectedFileIndex
+															? "blue"
+															: undefined
+													}
+													bold={
+														activePane === "files" &&
+														index + filesScrollPosition === selectedFileIndex
+													}
+												>
+													{item.isDirectory ? "📁 " : "📄 "}
+													{item.name}
+												</Text>
+											))}
 									</Box>
-								)}
+								</Box>
+								{/* Right column - Files */}
+								<Box flexDirection="column" width="50%">
+									<Text bold>files</Text>
+									<Box flexDirection="column" marginTop={1} flexGrow={1}>
+										{files
+											.slice(filesScrollPosition, filesScrollPosition + 15)
+											.map((item, index) => (
+												<Text
+													key={`file-${item.id}`}
+													color={
+														activePane === "files" &&
+														index + filesScrollPosition === selectedFileIndex
+															? "blue"
+															: undefined
+													}
+													bold={
+														activePane === "files" &&
+														index + filesScrollPosition === selectedFileIndex
+													}
+												>
+													{item.isDirectory ? "📁 " : "📄 "}
+													{item.name}
+												</Text>
+											))}
+									</Box>
+								</Box>
 							</Box>
 						</Box>
 					</Box>
