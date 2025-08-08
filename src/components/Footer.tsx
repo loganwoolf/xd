@@ -14,8 +14,8 @@ const Footer: React.FC = () => {
 	return (
 		<Box borderStyle="single" borderTop paddingX={1}>
 			<Box flexDirection="row" justifyContent="space-between">
-				{hotkeys.map((hotkey, index) => (
-					<Box key={index} marginRight={2}>
+				{hotkeys.map((hotkey) => (
+					<Box key={hotkey.key} marginRight={2}>
 						<Text color="yellow">{hotkey.key}</Text>
 						<Text color="gray"> {hotkey.action}</Text>
 					</Box>

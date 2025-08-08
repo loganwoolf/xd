@@ -12,13 +12,16 @@ export interface DirectoryState {
 }
 
 export function useDirectoryState(initialDirectory?: string) {
-	const [state, setState] = useState<DirectoryState>({
-		currentDirectory: initialDirectory || getCurrentWorkingDirectory(),
-		folders: [],
-		files: [],
-		allItems: [],
-		loading: true,
-		error: null,
+	const [state, setState] = useState<DirectoryState>(() => {
+		// Initialize with loading state
+		return {
+			currentDirectory: initialDirectory || getCurrentWorkingDirectory(),
+			folders: [],
+			files: [],
+			allItems: [],
+			loading: true,
+			error: null,
+		};
 	});
 
 	const loadDirectory = useCallback(async (path: string) => {
@@ -63,10 +66,18 @@ export function useDirectoryState(initialDirectory?: string) {
 		await loadDirectory(state.currentDirectory);
 	}, [state.currentDirectory, loadDirectory]);
 
-	// Load initial directory
+	// Load initial directory - only run once on mount
 	useEffect(() => {
-		loadDirectory(state.currentDirectory);
-	}, []);
+		const initialDir = initialDirectory || getCurrentWorkingDirectory();
+		// Use setTimeout to ensure the component is mounted before loading
+		const timer = setTimeout(() => {
+			loadDirectory(initialDir);
+		}, 1);
+		
+		return () => clearTimeout(timer);
+		// We want this to run only once when the component mounts
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // Empty dependency array is intentional - we only want to load once
 
 	return {
 		...state,

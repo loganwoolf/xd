@@ -1,6 +1,6 @@
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { ContentsPanel, FoldersPanel, Footer } from "./components/index.js";
 import {
 	useDirectoryState,
@@ -146,33 +146,7 @@ const App: React.FC = () => {
 		),
 	);
 
-	// Update scroll offsets when selection changes
-	useEffect(() => {
-		if (selection.activePanel === "folders") {
-			const foldersWithCurrent = [
-				{ name: ".", isDirectory: true, isFile: false, isHidden: false },
-				...directoryState.folders,
-			];
-			scrolling.updateScrollOffset(
-				"folders",
-				selection.foldersIndex,
-				foldersWithCurrent.length,
-			);
-		} else {
-			scrolling.updateScrollOffset(
-				"contents",
-				selection.contentsIndex,
-				directoryState.allItems.length,
-			);
-		}
-	}, [
-		selection.activePanel,
-		selection.foldersIndex,
-		selection.contentsIndex,
-		directoryState.folders.length,
-		directoryState.allItems.length,
-		scrolling,
-	]);
+	// No need for useEffect - scroll updates happen in keyboard handlers
 
 	if (directoryState.loading) {
 		return (
