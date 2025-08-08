@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Run the xd application and capture its output
-output=$(cd "$SCRIPT_DIR" && bun run index.ts 2>/dev/null)
+output=$("$SCRIPT_DIR/xd" 2>/dev/null)
 
 # If output is not empty and represents a valid directory path, cd to it
 if [[ -n "$output" && -d "$output" ]]; then
@@ -12,5 +12,5 @@ if [[ -n "$output" && -d "$output" ]]; then
     echo "Changed directory to: $output"
 else
     # If no valid directory output, just run normally (user pressed 'q' instead of 'Q')
-    cd "$SCRIPT_DIR" && bun run index.ts
+    "$SCRIPT_DIR/xd"
 fi

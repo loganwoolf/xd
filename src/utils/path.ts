@@ -51,7 +51,7 @@ export function truncatePathForDisplay(
 
 	if (pathParts.length <= 2) {
 		// If we only have 2 parts or less, just truncate from the end
-		return "..." + path.slice(-(maxLength - 3));
+		return `...${path.slice(-(maxLength - 3))}`;
 	}
 
 	// Try to show the last few directories
@@ -64,7 +64,7 @@ export function truncatePathForDisplay(
 	}
 
 	if (i >= 0) {
-		result = "..." + sep + result;
+		result = `...${sep}${result}`;
 	}
 
 	return result;

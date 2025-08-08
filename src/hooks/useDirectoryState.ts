@@ -73,11 +73,11 @@ export function useDirectoryState(initialDirectory?: string) {
 		const timer = setTimeout(() => {
 			loadDirectory(initialDir);
 		}, 1);
-		
+
 		return () => clearTimeout(timer);
 		// We want this to run only once when the component mounts
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []); // Empty dependency array is intentional - we only want to load once
+	}, [initialDirectory, loadDirectory]); // Empty dependency array is intentional - we only want to load once
 
 	return {
 		...state,

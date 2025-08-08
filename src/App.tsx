@@ -1,4 +1,4 @@
-import { Box, Text, useApp, useInput } from "ink";
+import { Box, Text, useApp, useInput, useStdin } from "ink";
 import type React from "react";
 import { useCallback } from "react";
 import { ContentsPanel, FoldersPanel, Footer } from "./components/index.js";
@@ -11,14 +11,16 @@ import { getParentDirectory, joinPath } from "./utils/path.js";
 
 const App: React.FC = () => {
 	const { exit } = useApp();
+	const { isRawModeSupported } = useStdin();
 	const directoryState = useDirectoryState();
 	const selection = useSelection("folders");
 	const scrolling = useScrolling();
 
-	// Handle keyboard input
+	// Handle keyboard input - only if raw mode is supported
 	useInput(
 		useCallback(
 			(input, key) => {
+				if (!isRawModeSupported) return;
 				if (input === "q") {
 					exit();
 					return;
@@ -30,7 +32,12 @@ const App: React.FC = () => {
 
 					if (selection.activePanel === "folders") {
 						const foldersWithCurrent = [
-							{ name: ".", isDirectory: true, isFile: false, isHidden: false },
+							{
+								name: ".",
+								isDirectory: true,
+								isFile: false,
+								isHidden: false,
+							},
 							...directoryState.folders,
 						];
 						const selectedFolder = foldersWithCurrent[selection.foldersIndex];
@@ -43,7 +50,7 @@ const App: React.FC = () => {
 					} else {
 						const selectedItem =
 							directoryState.allItems[selection.contentsIndex];
-						if (selectedItem && selectedItem.isDirectory) {
+						if (selectedItem?.isDirectory) {
 							targetPath = joinPath(
 								directoryState.currentDirectory,
 								selectedItem.name,
@@ -72,7 +79,12 @@ const App: React.FC = () => {
 
 					if (selection.activePanel === "folders") {
 						const foldersWithCurrent = [
-							{ name: ".", isDirectory: true, isFile: false, isHidden: false },
+							{
+								name: ".",
+								isDirectory: true,
+								isFile: false,
+								isHidden: false,
+							},
 							...directoryState.folders,
 						];
 						selection.moveSelection(direction, foldersWithCurrent.length);
@@ -95,7 +107,12 @@ const App: React.FC = () => {
 				if (key.rightArrow) {
 					if (selection.activePanel === "folders") {
 						const foldersWithCurrent = [
-							{ name: ".", isDirectory: true, isFile: false, isHidden: false },
+							{
+								name: ".",
+								isDirectory: true,
+								isFile: false,
+								isHidden: false,
+							},
 							...directoryState.folders,
 						];
 						const selectedFolder = foldersWithCurrent[selection.foldersIndex];
@@ -115,7 +132,7 @@ const App: React.FC = () => {
 						// In contents panel, enter directory if it's a folder
 						const selectedItem =
 							directoryState.allItems[selection.contentsIndex];
-						if (selectedItem && selectedItem.isDirectory) {
+						if (selectedItem?.isDirectory) {
 							directoryState.navigateToFolder(selectedItem.name);
 							selection.setActivePanel("folders");
 							selection.resetSelection();
@@ -142,11 +159,28 @@ const App: React.FC = () => {
 					return;
 				}
 			},
-			[exit, directoryState, selection, scrolling],
+			[exit, directoryState, selection, scrolling, isRawModeSupported],
 		),
 	);
 
 	// No need for useEffect - scroll updates happen in keyboard handlers
+
+	// Show message if raw mode is not supported
+	if (!isRawModeSupported) {
+		return (
+			<Box flexDirection="column">
+				<Box justifyContent="center" alignItems="center" height={20}>
+					<Text color="red">
+						Raw mode is not supported in this terminal environment.
+					</Text>
+					<Text color="yellow">
+						Try running this application in a proper terminal.
+					</Text>
+				</Box>
+				<Footer />
+			</Box>
+		);
+	}
 
 	if (directoryState.loading) {
 		return (
@@ -202,8 +236,6 @@ const App: React.FC = () => {
 					startIndex={visibleFolders.startIndex}
 				/>
 				<ContentsPanel
-					currentDirectory={directoryState.currentDirectory}
-					allItems={directoryState.allItems}
 					selectedIndex={selection.contentsIndex}
 					isActive={selection.activePanel === "contents"}
 					visibleItems={visibleContents.items}
