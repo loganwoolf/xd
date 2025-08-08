@@ -1,9 +1,0 @@
-- two panel interface: tree on left, contents on right
-- tree panel:
-  - panel title "folders"
-  - current path
-  - list of sibling folders
-- contents panel:
-  - panel title "contents"
-  - one column of folders, one column of files, each titled
-  - icons for directory/file type
