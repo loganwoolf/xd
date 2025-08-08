@@ -15,16 +15,24 @@ Here is a combined, refined, and comprehensive requirements specification for yo
 
 
 ## 2. **App Structure & UI**
+- **Initial State:**
+  - App starts in current working directory (cwd)
+  - Left panel (folders) has initial focus
+  
 - **Two-panel layout**, side by side:
   - **Folders panel (left):**
     - Displays current working directory (cwd) at the top.
-    - Lists immediate child folders plus an entry “.” representing the cwd itself.
+    - Lists immediate child folders plus an entry "." representing the cwd itself.
     - Navigation:
-      - **Up/down arrows** to move selection among folders and “.”.
+      - **Up/down arrows** to move selection among folders and ".".
       - **Right arrow** enters the highlighted subfolder (sets new cwd).
-      - **Left arrow** goes to parent directory (cwd’s parent — “..”).
+      - **Left arrow** goes to parent directory (cwd's parent — "..").
+      - Cannot navigate beyond filesystem root.
   - **Contents panel (right):**
     - Displays files and folders (with icons) inside the currently selected folder from the folder panel.
+    - Shows hidden files (starting with .).
+    - Items sorted alphabetically.
+    - File names truncated to fit panel width.
   
 - **Height constraint:**
   - Both panels have a maximum height of **16 lines**.
@@ -36,7 +44,10 @@ Here is a combined, refined, and comprehensive requirements specification for yo
   - Scroll up appropriately if selection moves upward past the visible window.
 
 - **Keyboard navigation and selection:**
-  - Use Ink’s `useInput()` to handle arrow keys and other hotkeys.
+  - Use Ink's `useInput()` to handle arrow keys and other hotkeys.
+  - **Tab key** switches focus between left and right panels.
+  - **Left arrow** returns focus to folders panel when in contents panel.
+  - Remember selection position when navigating back to the same folder.
   - Ensure selection cannot go out of bounds (at top or bottom limits).
   - Manage scroll offset to keep selection visible.
 
@@ -45,52 +56,62 @@ Here is a combined, refined, and comprehensive requirements specification for yo
 - Icons (ASCII or Unicode) to distinguish files vs. folders in the contents panel.
 - Clear visual separation between panels using borders, color, or spacing.
 - Color highlights to indicate the current selection in both panels.
+- **Theme:** Assume dark theme for color choices.
 - A fixed footer bar at the bottom (outside the two panels), showing:
   - **Hotkeys legend** (e.g., arrow keys, special keys with their actions)
   - Always visible, clearly styled, and does not scroll with content.
 
+## 4. **Error Handling & Performance**
+- **Permission errors:** Display "inadequate permissions" for inaccessible directories.
+- **Loading states:** Files should load asynchronously with appropriate loading indicators.
+- **Large directories:** Present options for handling large file counts when encountered.
+- Other error handling to be implemented as needed.
 
-## 4. **Special Features**
-- A **special key** (e.g., `g` or another defined key) to “navigate the terminal” to the currently selected folder upon exiting the app:
-  - On pressing this key, save the selected folder path.
-  - Upon exit, emit this path in a way that the caller shell or script can `cd` to that folder (since a child process cannot directly navigate the parent shell).
-  - This can be implemented by printing the folder path to stdout or writing to a temp file that a wrapper shell script reads to perform the final `cd`.
+
+## 5. **Special Features**
+- **Shell navigation on exit:**
+  - **Q key** to quit and navigate terminal to the currently selected folder
+  - **q key** for normal quit without navigation
+  - On pressing Q, save the selected folder path and emit it for shell navigation
+  - This can be implemented by printing the folder path to stdout or writing to a temp file that a wrapper shell script reads to perform the final `cd`
 
 
-## 5. **State Management**
-- Track the following with React’s state/hooks:
+## 6. **State Management**
+- Track the following with React's state/hooks:
   - Current working directory (cwd)
   - List of child folders in cwd.
   - Selected folder index in folders panel.
   - Selected file/folder index in contents panel.
+  - Current active panel (left/right focus)
   - Scroll offset per panel to implement scrolling.
 - Update folder contents dynamically as cwd changes.
 
 
-## 6. **Cross-Platform Support**
+## 7. **Cross-Platform Support**
 - Use Node.js native `fs` and `path` APIs for directory and file operations.
 - Avoid any OS-specific dependencies or calls.
 - Handle path separators and case sensitivity accordingly.
 
 
-## 7. **Packaging and Distribution**
-- Use **Bun**’s `bun build --compile` to create a **standalone binary executable** for each target platform.
+## 8. **Packaging and Distribution**
+- Use **Bun**'s `bun build --compile` to create a **standalone binary executable** for each target platform.
 - Support cross-compiling builds for:
   - Linux x64
   - macOS arm64/x64
   - Windows x64
 - Binary name: `xd` (to match the CLI entry command).
-- Also provide an **npm package** as a fallback/distribution method with `"bin": { "xd": "./cli.js" }` in `package.json`.
+- **No package.json** - pure Bun project using `bunfig.toml` for configuration.
 - Installation via:
-  - Global npm install (`npm install -g your-package-name`)
-  - Or via directly downloading the Bun-compiled executable.
+  - Direct download of Bun-compiled executable
+  - Shell wrapper script for navigation feature
 
 
-## 8. **Future-Proof Extensions (Optional)**
+## 9. **Future-Proof Extensions (Optional)**
 - File previews or simple file operations in the contents panel.
 - Searching/filtering folders or files.
 - Multi-panel navigation (e.g., tab switch between panels).
 - Theming or color scheme customization.
+- Configuration file support (deferred).
 - Integrate worker threads or async operations to keep UI responsive on large directories.
 
 ***
@@ -100,6 +121,8 @@ Here is a combined, refined, and comprehensive requirements specification for yo
 |-------------|--------------------------------------------------------|
 | ↑ / ↓       | Move selection up/down                                 |
 | →           | Enter highlighted folder (change cwd)                  |
-| ←           | Go to parent directory (cwd’s parent)                  |
-| g (example) | On exit, print path for shell to `cd` into that folder |
-| q or Ctrl+C | Quit/exit the app                                      |
+| ←           | Go to parent directory / return to folders panel      |
+| Tab         | Switch focus between panels                            |
+| q           | Quit/exit the app                                      |
+| Q           | Quit and navigate shell to selected folder            |
+| Ctrl+C      | Force quit                                             |
