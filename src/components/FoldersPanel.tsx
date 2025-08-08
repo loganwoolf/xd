@@ -1,7 +1,7 @@
 import { Box, Text } from "ink";
 import type React from "react";
 import type { FileSystemItem } from "../utils/fs.js";
-import { getDirectoryName, truncatePathForDisplay } from "../utils/path.js";
+import { truncatePathForDisplay } from "../utils/path.js";
 
 interface FoldersPanelProps {
 	currentDirectory: string;
@@ -23,7 +23,7 @@ const FoldersPanel: React.FC<FoldersPanelProps> = ({
 	const displayPath = truncatePathForDisplay(currentDirectory, 30);
 
 	// Add the "." entry for current directory at the beginning
-	const foldersWithCurrent = [
+	const _foldersWithCurrent = [
 		{ name: ".", isDirectory: true, isFile: false, isHidden: false },
 		...folders,
 	];
@@ -61,9 +61,10 @@ const FoldersPanel: React.FC<FoldersPanelProps> = ({
 				})}
 
 				{/* Fill remaining space if needed */}
-				{Array.from({ length: Math.max(0, 16 - visibleItems.length) }).map(
+				{Array.from(
+					{ length: Math.max(0, 16 - visibleItems.length) },
 					(_, index) => (
-						<Box key={`folder-empty-${index}`}>
+						<Box key={`folder-empty-${visibleItems.length + index}`}>
 							<Text> </Text>
 						</Box>
 					),

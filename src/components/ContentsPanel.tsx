@@ -4,8 +4,6 @@ import type { FileSystemItem } from "../utils/fs.js";
 import { truncatePathForDisplay } from "../utils/path.js";
 
 interface ContentsPanelProps {
-	currentDirectory: string;
-	allItems: FileSystemItem[];
 	selectedIndex: number;
 	isActive: boolean;
 	visibleItems: FileSystemItem[];
@@ -14,8 +12,6 @@ interface ContentsPanelProps {
 }
 
 const ContentsPanel: React.FC<ContentsPanelProps> = ({
-	currentDirectory,
-	allItems,
 	selectedIndex,
 	isActive,
 	visibleItems,
@@ -109,9 +105,10 @@ const ContentsPanel: React.FC<ContentsPanelProps> = ({
 				)}
 
 				{/* Fill remaining space if needed */}
-				{Array.from({ length: Math.max(0, 16 - visibleItems.length) }).map(
+				{Array.from(
+					{ length: Math.max(0, 16 - visibleItems.length) },
 					(_, index) => (
-						<Box key={`content-empty-${index}`}>
+						<Box key={`content-empty-${visibleItems.length + index}`}>
 							<Text> </Text>
 						</Box>
 					),

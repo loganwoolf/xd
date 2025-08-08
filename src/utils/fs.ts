@@ -1,5 +1,4 @@
 import { promises as fs } from "node:fs";
-import { join } from "node:path";
 
 export interface FileSystemItem {
 	name: string;
