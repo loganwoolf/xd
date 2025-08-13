@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Run the xd application and capture its output
-output=$(bun run /home/logan/code/xd/index.ts 2>/dev/null)
+# Get the directory of this script to find the xd application
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Check if the output contains our special cwd marker
-if [[ $output == __CWD__:* ]]; then
-    # Extract the directory path
-    new_dir="${output#__CWD__:}"
-    # Change to that directory
-    cd "$new_dir"
+# Run the xd application and capture its output
+output=$("$SCRIPT_DIR/xd" 2>/dev/null)
+
+# If output is not empty and represents a valid directory path, cd to it
+if [[ -n "$output" && -d "$output" ]]; then
+    cd "$output"
+    echo "Changed directory to: $output"
 else
-    # Just show the output if no directory change was requested
-    echo "$output"
+    # If no valid directory output, just run normally (user pressed 'q' instead of 'Q')
+    "$SCRIPT_DIR/xd"
 fi

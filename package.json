@@ -18,6 +18,7 @@
 	"scripts": {
 		"start": "bun run index.ts",
 		"dev": "bun run index.ts",
+		"build": "bun build --compile --outfile xd index.ts",
 		"lint": "biome lint .",
 		"format": "biome format . --write",
 		"check": "biome check .",
